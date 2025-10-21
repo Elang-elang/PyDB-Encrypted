@@ -1,0 +1,5 @@
+# PyDB - Encrypted Python Database
+# Requirements file for production dependencies
+
+# Encryption library
+cryptography>=41.0.0
