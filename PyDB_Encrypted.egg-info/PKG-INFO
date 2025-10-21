@@ -1,3 +1,51 @@
+Metadata-Version: 2.4
+Name: PyDB-Encrypted
+Version: 1.0.0
+Summary: A simple, efficient, and encrypted Python database library for secure data storage
+Home-page: https://github.com/Elang-elang/PyDB-Encrypted
+Author: Elang-elang
+Author-email: elangmuhammad888@gmail.com
+License: MIT
+Project-URL: Bug Tracker, https://github.com/Elang-elang/PyDB-Encrypted/issues
+Project-URL: Documentation, https://github.com/Elang-elang/PyDB-Encrypted#readme
+Project-URL: Source Code, https://github.com/Elang-elang/PyDB-Encrypted
+Keywords: database,encryption,json,lightweight,embedded-database,python-database,encrypted-storage
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Database
+Classifier: Topic :: Database :: Database Engines/Servers
+Classifier: Topic :: Security :: Cryptography
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+Requires-Dist: cryptography>=41.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: project-url
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
 # PyDB - Encrypted Python Database
 
 ## English
@@ -18,16 +66,16 @@
 ### Basic Usage
 
 ```python
-from PyDB import Database, Column
+from PyDB import Database, ColumnDefinition
 
 # Create a new encrypted database
 db = Database.create_new("my_database", "my_password")
 
 # Define table columns
 columns = {
-    'id': Column('id', int, nullable=False),
-    'name': Column('name', str, max_length=100),
-    'email': Column('email', str)
+    'id': ColumnDefinition('id', int, nullable=False),
+    'name': ColumnDefinition('name', str, max_length=100),
+    'email': ColumnDefinition('email', str)
 }
 
 # Create table and insert data
@@ -70,16 +118,16 @@ This database is based on encrypted JSON storage. While you can create similar d
 ### Penggunaan Dasar
 
 ```python
-from PyDB import Database, Column
+from PyDB import Database, ColumnDefinition
 
 # Buat database terenkripsi baru
 db = Database.create_new("database_saya", "kata_sandi_saya")
 
 # Definisikan kolom tabel
 columns = {
-    'id': Column('id', int, nullable=False),
-    'nama': Column('nama', str, max_length=100),
-    'email': Column('email', str)
+    'id': ColumnDefinition('id', int, nullable=False),
+    'nama': ColumnDefinition('nama', str, max_length=100),
+    'email': ColumnDefinition('email', str)
 }
 
 # Buat tabel dan masukkan data
@@ -107,7 +155,7 @@ Database ini didasarkan pada penyimpanan JSON terenkripsi. Meskipun Anda dapat m
 ## Installation
 
 ```bash
-pip install PyDB-Encrypted
+pip install cryptography
 ```
 
 ## Requirements

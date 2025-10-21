@@ -16,7 +16,7 @@ __license__ = 'MIT'
 from .src.PyDB import (
     Database,
     Table,
-    ColumnDefinition as Column,
+    Column,
     DataType,
     
     # Exceptions
@@ -30,23 +30,7 @@ from .src.PyDB import (
     PasswordValueError,
 )
 
-class pydb:
-    Database = Database
-    Table = Table
-    Column = Column
-
-class exceptions:
-    DatabaseError = DatabaseError
-    DatabaseLengthError = DatabaseLengthError
-    DatabaseColumnError = DatabaseColumnError
-    DatabaseTypeError = DatabaseTypeError
-    DatabaseTableError = DatabaseTableError
-    DatabaseValidationError = DatabaseValidationError
-    DatabasePathError = DatabasePathError
-    PasswordValueError = PasswordValueError
-
 from .src.encrypted import (
-    TextEncryptor,
     encrypt,
     decrypt,
     save,
@@ -54,21 +38,26 @@ from .src.encrypted import (
     PasswordValueError,
 )
 
-class Encrypted:
-    TextEncryptor = TextEncryptor
-    dncrypt = encrypt
-    decrypt = decrypt
-    save = save
-    load = load
-    PasswordValueError = PasswordValueError
-
 __all__ = [
     # Main classes
-    'pydb'
+    'Database',
+    'Table',
+    'Column',
+    'DataType',
     
     # Encryption utilities
-    'Encrypted',
+    'encrypt',
+    'decrypt',
+    'save',
+    'load',
     
     # Exceptions
-    'exceptions'
+    'DatabaseError',
+    'DatabaseLengthError',
+    'DatabaseColumnError',
+    'DatabaseTypeError',
+    'DatabaseTableError',
+    'DatabaseValidationError',
+    'DatabasePathError',
+    'PasswordValueError',
 ]

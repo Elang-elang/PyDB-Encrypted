@@ -89,7 +89,7 @@ class DataType(Enum):
 # COLUMN DEFINITION CLASS
 # =============================================================================
 
-class ColumnDefinition:
+class Column:
     """
     Kelas untuk mendefinisikan kolom dengan tipe data dan constraint
     """
@@ -194,7 +194,7 @@ class ColumnDefinition:
             length = { "min_length": self.min_length, "max_length": self.max_length }
             length = f", length={length}"
             
-        return f"ColumnDefinition(name='{self.name}', type={tuple(self.data_type.__name__)}{length if length else ""}, nullable={self.nullable}, default_value={self.default_value if ((self.default_value is not None) or (self.default_value)) else '""'})"
+        return f"Column(name='{self.name}', type={"number" if isinstance(self.data_type, (list, tuple)) else self.data_type.__name__)}{length if length else ""}, nullable={self.nullable}, default_value={self.default_value if ((self.default_value is not None) or (self.default_value)) else '""'})"
 
 # =============================================================================
 # TABLE CLASS
@@ -205,7 +205,7 @@ class Table:
     Kelas untuk representasi tabel dalam database
     """
     
-    def __init__(self, name: str, columns: Dict[str, ColumnDefinition]):
+    def __init__(self, name: str, columns: Dict[str, Column]):
         # Validasi nama tabel
         if not isinstance(name, str) or not name.strip():
             raise DatabaseTableError("Nama tabel harus string tidak kosong")
@@ -215,8 +215,8 @@ class Table:
             raise DatabaseColumnError("Tabel harus memiliki minimal satu kolom")
         
         for col_name, col_def in columns.items():
-            if not isinstance(col_def, ColumnDefinition):
-                raise DatabaseColumnError("Semua kolom harus instance ColumnDefinition")
+            if not isinstance(col_def, Column):
+                raise DatabaseColumnError("Semua kolom harus instance Column")
         
         self.name = name.strip()
         self.columns = columns.copy()
@@ -435,7 +435,7 @@ class Database:
         self.tables.clear()
         self._save_to_file()
     
-    def create_table(self, name: str, columns: Dict[str, ColumnDefinition]) -> Table:
+    def create_table(self, name: str, columns: Dict[str, Column]) -> Table:
         """
         Membuat tabel baru
         """
@@ -522,7 +522,7 @@ class Database:
                     
                     data_type = type_mapping.get(col_def_data['data_type'], str)
                     
-                    column_def = ColumnDefinition(
+                    column_def = Column(
                         name=col_name,
                         data_type=data_type,
                         min_length=col_def_data['min_length'],
@@ -644,51 +644,3 @@ class Database:
     
     def __repr__(self) -> str:
         return f"Database(name='{self.name}', tables={len(self.tables)}, encrypted=True)"
-
-# =============================================================================
-# CONTOH PENGGUNAAN
-# =============================================================================
-
-def contoh_penggunaan():
-    """Contoh penggunaan database dengan enkripsi"""
-    
-    # Buat database baru dengan password
-    db = Database.create_new("contoh_database", "password_rahasia")
-    
-    # Definisikan kolom untuk tabel pengguna
-    columns_user = {
-        'id': ColumnDefinition('id', int, nullable=False),
-        'nama': ColumnDefinition('nama', str, min_length=1, max_length=100, nullable=False),
-        'email': ColumnDefinition('email', str, min_length=5, max_length=150),
-        'usia': ColumnDefinition('usia', int, min_length=0, max_length=150, default_value=0),
-        'aktif': ColumnDefinition('aktif', bool, default_value=True)
-    }
-    
-    # Buat tabel
-    tabel_pengguna = db.buat_tabel("pengguna", columns_user)
-    
-    # Tambah data
-    tabel_pengguna.tambah_data(id=1, nama="Alice", email="alice@contoh.com", usia=25)
-    tabel_pengguna.tambah_data(id=2, nama="Bob", email="bob@contoh.com", usia=30)
-    
-    # Simpan database
-    db.save()
-    
-    print("Database berhasil dibuat dan disimpan!")
-    
-    # Load database dari file
-    try:
-        db_loaded = Database.load_from_file("contoh_database.pydb", "password_rahasia")
-        
-        # Ambil data
-        semua_data = db_loaded.get_table("pengguna").ambil_data()
-        print("Data dari database yang di-load:", semua_data)
-        
-        # Info database
-        info = db_loaded.get_database_info()
-        print("Info database:", info)
-        
-    except PasswordValueError as e:
-        print(f"Error: {e}")
-    except DatabaseError as e:
-        print(f"Error database: {e}")
