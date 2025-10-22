@@ -8,7 +8,7 @@ Author: Elang Muhammad R. J. (Elang-elang)
 License: MIT
 """
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __name__ = "PyDB"
 __author__ = 'Elang Muhammad R. J. (Elang-elang)'
 __license__ = 'MIT'
