@@ -18,16 +18,24 @@
 ### Basic Usage
 
 ```python
-from PyDB import Database, Column
-
+from pydb import (
+    # Configurate
+    Database, Column,
+    
+    # Type
+    String, Number, Integer, Float, Boolean
+)
 # Create a new encrypted database
-db = Database.create_new("my_database", "my_password")
+db = Database.create_new(
+    "my_database.pydb", # file.pydb
+    "my_password", # a password
+)
 
 # Define table columns
 columns = {
-    'id': Column('id', int, nullable=False),
-    'name': Column('name', str, max_length=100),
-    'email': Column('email', str)
+    'id': Column('id', Integer, nullable=False),
+    'name': Column('name', String, max_length=100),
+    'email': Column('email', String)
 }
 
 # Create table and insert data
@@ -70,10 +78,18 @@ This database is based on encrypted JSON storage. While you can create similar d
 ### Penggunaan Dasar
 
 ```python
-from PyDB import Database, Column
-
+from PyDB import (
+    # Configurasi
+    Database, Column,
+    
+    # Tipe
+    String, Number, Integer, Float, Boolean
+)
 # Buat database terenkripsi baru
-db = Database.create_new("database_saya", "kata_sandi_saya")
+db = Database.create_new(
+    "database_saya.pydb", # file.pydb
+    "kata_sandi_saya" # kata sandi
+)
 
 # Definisikan kolom tabel
 columns = {
