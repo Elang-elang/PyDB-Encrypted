@@ -7,6 +7,7 @@ from typing import Dict, List, Any, Optional, Union, Callable, Tuple
 from enum import Enum
 from datetime import datetime
 from .encrypted import TextEncryptor, encrypt, decrypt, save, load
+from .__type__ import String, Number, Integer, Float, Boolean
 
 # =============================================================================
 # EXCEPTION CLASSES
@@ -17,77 +18,112 @@ class DatabaseError(SyntaxError):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabaseError({ErrorText})"
+        return f"DatabaseError(ErrorText='{self.ErrorText}')"
 
 class DatabaseLengthError(DatabaseError, IndexError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabaseLengthError({ErrorText})"
+        return f"DatabaseLengthError(ErrorText='{self.ErrorText}')"
 
 class DatabaseColumnError(DatabaseError, IndexError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabaseColumnError({ErrorText})"
+        return f"DatabaseColumnError(ErrorText='{self.ErrorText}')"
 
 class DatabaseTypeError(DatabaseError, TypeError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabaseTypeError({ErrorText})"
+        return f"DatabaseTypeError(ErrorText='{self.ErrorText}')"
 
 class DatabaseTableError(DatabaseError, IndexError, TypeError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabaseTableError({ErrorText})"
+        return f"DatabaseTableError(ErrorText='{self.ErrorText}')"
 
 class DatabaseValidationError(DatabaseError, ValueError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabaseValidationError({ErrorText})"
+        return f"DatabaseValidationError(ErrorText='{self.ErrorText}')"
 
 class DatabasePathError(FileNotFoundError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"DatabasePathError({ErrorText})"
+        return f"DatabasePathError(ErrorText='{self.ErrorText}')"
 
 class PasswordValueError(DatabaseError, ValueError):
     def __init__(self, ErrorText):
         self.ErrorText = ErrorText
         super().__init__(ErrorText)
     def __repr__(self):
-        return f"PasswordValueError({ErrorText})"
-
-# =============================================================================
-# ENUM FOR DATA TYPES
-# =============================================================================
-
-class DataType(Enum):
-    """Enum untuk tipe data yang didukung"""
-    STRING = str
-    INTEGER = int 
-    FLOAT = float
-    BOOLEAN = bool
-    NONE = type(None)
-    
-    @classmethod
-    def get_supported_types(cls) -> Tuple[type, ...]:
-        """Mengembalikan tuple dari tipe data yang didukung"""
-        return (str, (int, float), int, float, bool, type(None))
+        return f"PasswordValueError(ErrorText='{self.ErrorText}')"
 
 # =============================================================================
 # COLUMN DEFINITION CLASS
 # =============================================================================
+
+class DataType(Enum):
+    String = String
+    Number = Number
+    Integer = Integer
+    Float = Float
+    Boolean = Boolean
+    NoneType = type(None)
+    
+    @staticmethod
+    def get_supported_types():
+        """Mendapatkan semua tipe data yang didukung termasuk built-in dan custom"""
+        return (String, Number, Integer, Float, Boolean, type(None), 
+                str, int, float, bool)  # Include built-in types for compatibility
+    
+    @staticmethod
+    def normalize_type(data_type):
+        """Normalisasi tipe data: konversi built-in types ke custom types"""
+        type_mapping = {
+            str: String,
+            int: Integer,
+            float: Float,
+            bool: Boolean
+        }
+        return type_mapping.get(data_type, data_type)
+    
+    @staticmethod
+    def validate_value_type(value, expected_type):
+        """Validasi tipe value terhadap expected_type yang dinormalisasi"""
+        expected_type = DataType.normalize_type(expected_type)
+        
+        # Handle None
+        if value is None:
+            return expected_type in (type(None), None)
+        
+        # Handle Number type (special case - accepts both int and float)
+        if expected_type == Number:
+            return isinstance(value, (int, float, Integer, Float, Number))
+        
+        # Handle other types
+        type_compatibility = {
+            String: (str, String),
+            Integer: (int, Integer),
+            Float: (float, Float),
+            Boolean: (bool, Boolean)
+        }
+        
+        if expected_type in type_compatibility:
+            return isinstance(value, type_compatibility[expected_type])
+        
+        # Fallback untuk tipe lain
+        return isinstance(value, expected_type)
 
 class Column:
     """
@@ -97,7 +133,7 @@ class Column:
     def __init__(
         self, 
         name: str, 
-        data_type: type,
+        data_type: [String, Number, Integer, Float, Boolean],
         min_length: int = 0,
         max_length: int = 0,
         nullable: bool = True,
@@ -107,7 +143,12 @@ class Column:
         if not isinstance(name, str) or not name.strip():
             raise DatabaseColumnError("Nama kolom harus string tidak kosong")
         
-        if data_type not in DataType.get_supported_types():
+        # Normalisasi tipe data
+        self.data_type = DataType.normalize_type(data_type)
+        
+        if self.data_type not in (
+                String, Number, Integer, Float, Boolean 
+            ):
             raise DatabaseTypeError(f"Tipe data tidak didukung: {data_type}")
         
         if min_length < 0:
@@ -123,18 +164,44 @@ class Column:
         
         # Set atribut
         self.name = name.strip()
-        self.data_type = data_type
         self.min_length = min_length
         self.max_length = max_length
         self.nullable = nullable
-        self.default_value = default_value
+        self.default_value = self._normalize_default_value(default_value)
         
         # Validasi default value
-        if default_value is not None:
-            if not self._validate_single_value(default_value):
+        if self.default_value is not None:
+            if not self._validate_single_value(self.default_value):
                 raise DatabaseValidationError(
                     f"Nilai default tidak valid untuk kolom {self.name}"
                 )
+
+    def _normalize_default_value(self, value: Any) -> Any:
+        """Normalisasi default value ke tipe data yang sesuai"""
+        if value is None:
+            return None
+        
+        try:
+            if self.data_type == String:
+                return String(str(value))
+            elif self.data_type == Integer:
+                return Integer(int(value))
+            elif self.data_type == Float:
+                return Float(float(value))
+            elif self.data_type == Boolean:
+                return Boolean(bool(value))
+            elif self.data_type == Number:
+                # Untuk Number, coba konversi ke int dulu, lalu float
+                try:
+                    return Number(int(value))
+                except (ValueError, TypeError):
+                    return Number(float(value))
+            else:
+                return value
+        except (ValueError, TypeError):
+            raise DatabaseValidationError(
+                f"Tidak dapat mengkonversi default value '{value}' ke tipe {self.data_type}"
+            )
 
     def _validate_single_value(self, value: Any) -> bool:
         """Validasi nilai tunggal berdasarkan constraint kolom"""
@@ -143,23 +210,24 @@ class Column:
             if value is None:
                 return self.nullable
             
-            # Cek tipe data
-            if not isinstance(value, self.data_type):
+            # Validasi tipe data
+            if not DataType.validate_value_type(value, self.data_type):
                 return False
             
             # Validasi panjang untuk string
-            if self.data_type == str:
-                length = len(value)
+            if self.data_type in (String, str):
+                length = len(str(value))
                 if self.max_length > 0 and length > self.max_length:
                     return False
                 if length < self.min_length:
                     return False
             
             # Validasi range untuk numerik
-            elif self.data_type in (int, float):
-                if self.max_length > 0 and value > self.max_length:
+            elif self.data_type in (Integer, int, Float, float, Number):
+                numeric_value = float(value)
+                if self.max_length > 0 and numeric_value > self.max_length:
                     return False
-                if value < self.min_length:
+                if numeric_value < self.min_length:
                     return False
             
             return True
@@ -172,29 +240,76 @@ class Column:
         return self._validate_single_value(value)
     
     def get_default_value(self) -> Any:
-        """Mengembalikan nilai default yang sudah divalidasi"""
+        """Mengembalikan nilai default yang sudah dinormalisasi"""
         if self.default_value is not None:
             return self.default_value
-        return None if self.nullable else self._get_type_default()
+        
+        # Return default berdasarkan tipe data jika tidak ada default value
+        type_defaults = {
+            String: String(""),
+            Integer: Integer(0),
+            Number: Number(0),
+            Float: Float(0.0),
+            Boolean: Boolean(False),
+            type(None): None
+        }
+        return type_defaults.get(self.data_type, None)
+    
+    def get_data_type(self):
+        """Mendapatkan nama tipe data"""
+        get_type = {
+            String: "String",
+            Number: "Number", 
+            Integer: "Integer",
+            Float: "Float",
+            Boolean: "Boolean",
+            str: "str",
+            int: "int",
+            float: "float",
+            bool: "bool"
+        }
+        
+        return get_type.get(self.data_type, "NoneType")
     
     def _get_type_default(self) -> Any:
         """Mengembalikan nilai default berdasarkan tipe data"""
         type_defaults = {
-            str: "",
-            int: 0,
-            float: 0.0,
-            bool: False,
+            String: String(""),
+            Integer: Integer(0),
+            Number: Number(0),
+            Float: Float(0.0),
+            Boolean: Boolean(False),
             type(None): None
         }
         return type_defaults.get(self.data_type, None)
     
     def __repr__(self) -> str:
-        length = ""
-        if self.max_length and self.min_length:
-            length = { "min_length": self.min_length, "max_length": self.max_length }
-            length = f", length={length}"
-            
-        return f"Column(name='{self.name}', type={"number" if isinstance(self.data_type, (list, tuple)) else self.data_type.__name__)}{length if length else ""}, nullable={self.nullable}, default_value={self.default_value if ((self.default_value is not None) or (self.default_value)) else '""'})"
+        # Base representation dengan nama dan tipe data
+        type_name = self.get_data_type()
+        parts = [f"name='{self.name}'", f"type={type_name}"]
+        
+        # Tambahkan length constraints jika ada
+        if self.min_length > 0 or self.max_length > 0:
+            length_info = {}
+            if self.min_length > 0:
+                length_info["min_length"] = self.min_length
+            if self.max_length > 0:
+                length_info["max_length"] = self.max_length
+            if length_info:
+                parts.append(f"length={length_info}")
+        
+        # Tambahkan nullable jika tidak true (default)
+        if not self.nullable:
+            parts.append(f"nullable={self.nullable}")
+        
+        # Tambahkan default_value jika ada dan valid
+        if self.default_value is not None:
+            # Validasi default value sebelum menampilkan
+            if self._validate_single_value(self.default_value):
+                default_repr = f"'{self.default_value}'" if isinstance(self.default_value, (str, String)) else self.default_value
+                parts.append(f"default_value={default_repr}")
+        
+        return f"Column({', '.join(parts)})"
 
 # =============================================================================
 # TABLE CLASS
@@ -223,6 +338,37 @@ class Table:
         self.data: List[Dict[str, Any]] = []
         self._auto_increment = 1
         self._created_at = datetime.now()
+    
+    def _normalize_row_data(self, row_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalisasi data baris ke tipe data yang sesuai"""
+        normalized_data = {}
+        
+        for col_name, value in row_data.items():
+            if col_name in self.columns:
+                col_def = self.columns[col_name]
+                
+                # Normalisasi value berdasarkan tipe data kolom
+                if value is None:
+                    normalized_data[col_name] = None
+                elif col_def.data_type == String:
+                    normalized_data[col_name] = String(str(value))
+                elif col_def.data_type == Integer:
+                    normalized_data[col_name] = Integer(int(value))
+                elif col_def.data_type == Float:
+                    normalized_data[col_name] = Float(float(value))
+                elif col_def.data_type == Boolean:
+                    normalized_data[col_name] = Boolean(bool(value))
+                elif col_def.data_type == Number:
+                    try:
+                        normalized_data[col_name] = Number(int(value))
+                    except (ValueError, TypeError):
+                        normalized_data[col_name] = Number(float(value))
+                else:
+                    normalized_data[col_name] = value
+            else:
+                normalized_data[col_name] = value
+        
+        return normalized_data
     
     def _validate_row_data(self, row_data: Dict[str, Any]) -> bool:
         """
@@ -260,13 +406,16 @@ class Table:
         """
         Menyisipkan data baru ke dalam tabel
         """
+        # Normalisasi data input
+        normalized_data = self._normalize_row_data(data)
+        
         # Auto increment untuk primary key jika ada kolom 'id'
-        if 'id' in self.columns and 'id' not in data:
-            data['id'] = self._auto_increment
+        if 'id' in self.columns and 'id' not in normalized_data:
+            normalized_data['id'] = Integer(self._auto_increment)
             self._auto_increment += 1
         
         # Terapkan nilai default
-        complete_data = self._apply_defaults(data)
+        complete_data = self._apply_defaults(normalized_data)
         
         # Validasi data
         if not self._validate_row_data(complete_data):
@@ -316,17 +465,20 @@ class Table:
         """
         Memperbarui data berdasarkan kondisi
         """
+        # Normalisasi data update
+        normalized_updates = self._normalize_row_data(updates)
+        
         updated_count = 0
         
         for row in self.data:
             if condition(row):
                 # Buat salinan sementara untuk validasi
                 temp_row = row.copy()
-                temp_row.update(updates)
+                temp_row.update(normalized_updates)
                 
                 # Validasi data yang diupdate
                 if self._validate_row_data(temp_row):
-                    row.update(updates)
+                    row.update(normalized_updates)
                     updated_count += 1
                 else:
                     raise DatabaseValidationError(f"Validasi update gagal untuk data di tabel {self.name}")
@@ -372,7 +524,23 @@ class Table:
         return len([row for row in self.data if condition(row)])
     
     def __repr__(self) -> str:
-        return f"Table(name='{self.name}', columns={len(self.columns)}, data={len(self.data)})"
+        parts = [f"name='{self.name}'"]
+        
+        # Tambahkan informasi kolom jika ada
+        if self.columns:
+            parts.append(f"columns={len(self.columns)}")
+        
+        # Tambahkan informasi data
+        parts.append(f"data={len(self.data)}")
+        
+        # Tambahkan auto_increment jika lebih dari 1
+        if self._auto_increment > 1:
+            parts.append(f"auto_increment={self._auto_increment}")
+        
+        return f"Table({', '.join(parts)})"
+
+# Sisanya tetap sama...
+# [Kode Database class dan lainnya tetap tidak berubah]
 
 # =============================================================================
 # DATABASE CLASS WITH ENCRYPTION
@@ -383,7 +551,7 @@ class Database:
     Kelas utama untuk manajemen database dengan enkripsi
     """
     
-    def __init__(self, name: str, password: str, storage_path: str = "MyPyDB.pydb", create_new: bool = False):
+    def __init__(self, name: str, password: str, storage_path: str = ".", create_new: bool = False):
         """
         Inisialisasi database dengan password
         
@@ -643,4 +811,17 @@ class Database:
         }
     
     def __repr__(self) -> str:
-        return f"Database(name='{self.name}', tables={len(self.tables)}, encrypted=True)"
+        parts = [f"name='{self.name}'"]
+        
+        # Tambahkan informasi tabel
+        parts.append(f"tables={len(self.tables)}")
+        
+        # Tambahkan path jika bukan default
+        default_path = os.path.abspath("MyPyDB.pydb")
+        if self.storage_path != "." or self.file_path != default_path:
+            parts.append(f"storage_path='{self.storage_path}'")
+        
+        # Tambahkan status enkripsi
+        parts.append("encrypted=True")
+        
+        return f"Database({', '.join(parts)})"

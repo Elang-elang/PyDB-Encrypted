@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: PyDB-Encrypted
-Version: 1.0.0
+Version: 1.0.1
 Summary: A simple, efficient, and encrypted Python database library for secure data storage
 Home-page: https://github.com/Elang-elang/PyDB-Encrypted
 Author: Elang-elang
@@ -66,16 +66,16 @@ Dynamic: summary
 ### Basic Usage
 
 ```python
-from PyDB import Database, ColumnDefinition
+from PyDB import Database, Column
 
 # Create a new encrypted database
 db = Database.create_new("my_database", "my_password")
 
 # Define table columns
 columns = {
-    'id': ColumnDefinition('id', int, nullable=False),
-    'name': ColumnDefinition('name', str, max_length=100),
-    'email': ColumnDefinition('email', str)
+    'id': Column('id', int, nullable=False),
+    'name': Column('name', str, max_length=100),
+    'email': Column('email', str)
 }
 
 # Create table and insert data
@@ -118,16 +118,16 @@ This database is based on encrypted JSON storage. While you can create similar d
 ### Penggunaan Dasar
 
 ```python
-from PyDB import Database, ColumnDefinition
+from PyDB import Database, Column
 
 # Buat database terenkripsi baru
 db = Database.create_new("database_saya", "kata_sandi_saya")
 
 # Definisikan kolom tabel
 columns = {
-    'id': ColumnDefinition('id', int, nullable=False),
-    'nama': ColumnDefinition('nama', str, max_length=100),
-    'email': ColumnDefinition('email', str)
+    'id': Column('id', int, nullable=False),
+    'nama': Column('nama', str, max_length=100),
+    'email': Column('email', str)
 }
 
 # Buat tabel dan masukkan data
@@ -155,7 +155,7 @@ Database ini didasarkan pada penyimpanan JSON terenkripsi. Meskipun Anda dapat m
 ## Installation
 
 ```bash
-pip install cryptography
+pip install PyDB-Encrypted
 ```
 
 ## Requirements

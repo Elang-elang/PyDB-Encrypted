@@ -8,12 +8,13 @@ Author: Elang Muhammad R. J. (Elang-elang)
 License: MIT
 """
 
-__version__ = '0.1.0'
+__version__ = "1.0.1"
+__name__ = "PyDB"
 __author__ = 'Elang Muhammad R. J. (Elang-elang)'
 __license__ = 'MIT'
 
 # Import main classes
-from .src.PyDB import (
+from .PyDB import (
     Database,
     Table,
     Column,
@@ -30,13 +31,15 @@ from .src.PyDB import (
     PasswordValueError,
 )
 
-from .src.encrypted import (
+from .encrypted import (
     encrypt,
     decrypt,
     save,
     load,
     PasswordValueError,
 )
+
+from .__type__ import String, Number, Integer, Float, Boolean
 
 __all__ = [
     # Main classes
@@ -50,6 +53,13 @@ __all__ = [
     'decrypt',
     'save',
     'load',
+    
+    # Types
+    "String",
+    "Number",
+    "Integer",
+    "Float",
+    "Boolean",
     
     # Exceptions
     'DatabaseError',

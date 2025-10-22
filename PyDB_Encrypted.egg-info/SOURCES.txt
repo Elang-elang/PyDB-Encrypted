@@ -6,7 +6,8 @@ PyDB_Encrypted.egg-info/dependency_links.txt
 PyDB_Encrypted.egg-info/not-zip-safe
 PyDB_Encrypted.egg-info/requires.txt
 PyDB_Encrypted.egg-info/top_level.txt
-src/PyDB.py
-src/__init__.py
-src/encrypted.py
-src/exception.py
+pydb/PyDB.py
+pydb/__init__.py
+pydb/__type__.py
+pydb/encrypted.py
+pydb/exception.py
