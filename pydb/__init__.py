@@ -8,7 +8,7 @@ Author: Elang Muhammad R. J. (Elang-elang)
 License: MIT
 """
 
-__version__ = "1.1.0"
+__version__ = "1.1.5"
 __name__ = "PyDB"
 __author__ = 'Elang Muhammad R. J. (Elang-elang)'
 __license__ = 'MIT'
@@ -39,6 +39,8 @@ from .encrypted import (
     PasswordValueError,
 )
 
+from .loader import loader
+
 from .__type__ import String, Number, Integer, Float, Boolean
 
 __all__ = [
@@ -53,6 +55,9 @@ __all__ = [
     'decrypt',
     'save',
     'load',
+    
+    # semi/sub Encryption utilities
+    'loader'
     
     # Types
     "String",

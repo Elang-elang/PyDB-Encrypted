@@ -11,3 +11,4 @@ pydb/__init__.py
 pydb/__type__.py
 pydb/encrypted.py
 pydb/exception.py
+pydb/loader.py

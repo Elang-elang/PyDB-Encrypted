@@ -189,13 +189,13 @@ class Column:
             elif self.data_type == Float:
                 return Float(float(value))
             elif self.data_type == Boolean:
-                return Boolean(bool(value))
+                return Boolean(bool(value)).value
             elif self.data_type == Number:
                 # Untuk Number, coba konversi ke int dulu, lalu float
                 try:
-                    return Number(int(value))
+                    return Number(int(value)).value
                 except (ValueError, TypeError):
-                    return Number(float(value))
+                    return Number(float(value)).value
             else:
                 return value
         except (ValueError, TypeError):
@@ -248,9 +248,9 @@ class Column:
         type_defaults = {
             String: String(""),
             Integer: Integer(0),
-            Number: Number(0),
+            Number: Number(0).value,
             Float: Float(0.0),
-            Boolean: Boolean(False),
+            Boolean: Boolean(False).value,
             type(None): None
         }
         return type_defaults.get(self.data_type, None)
@@ -276,9 +276,9 @@ class Column:
         type_defaults = {
             String: String(""),
             Integer: Integer(0),
-            Number: Number(0),
+            Number: Number(0).value,
             Float: Float(0.0),
-            Boolean: Boolean(False),
+            Boolean: Boolean(False).value,
             type(None): None
         }
         return type_defaults.get(self.data_type, None)
@@ -357,12 +357,12 @@ class Table:
                 elif col_def.data_type == Float:
                     normalized_data[col_name] = Float(float(value))
                 elif col_def.data_type == Boolean:
-                    normalized_data[col_name] = Boolean(bool(value))
+                    normalized_data[col_name] = Boolean(bool(value)).value
                 elif col_def.data_type == Number:
                     try:
-                        normalized_data[col_name] = Number(int(value))
+                        normalized_data[col_name] = Number(int(value)).value
                     except (ValueError, TypeError):
-                        normalized_data[col_name] = Number(float(value))
+                        normalized_data[col_name] = Number(float(value)).value
                 else:
                     normalized_data[col_name] = value
             else:

@@ -8,7 +8,7 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='PyDB-Encrypted',
-    version="1.1.0",
+    version="1.1.5",
     author='Elang-elang',
     author_email='elangmuhammad888@gmail.com',  # Ganti dengan email Anda
     description='A simple, efficient, and encrypted Python database library for secure data storage',
